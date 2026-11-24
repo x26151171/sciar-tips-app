@@ -1,0 +1,389 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sciar Tips · Staff View (Pilot Alpha)</title>
+  <style>
+    :root {
+      --bg: #f7f6f2;
+      --card: #ffffff;
+      --ink: #18181b;
+      --muted: #52525b;
+      --line: #d4d4d8;
+      --accent: #14532d;
+      --accent-soft: #dcfce7;
+      --warn-bg: #fef9c3;
+      --warn-ink: #713f12;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      font-size: 17px;
+      line-height: 1.5;
+      color: var(--ink);
+      background: var(--bg);
+    }
+    .wrap {
+      max-width: 780px;
+      margin: 0 auto;
+      padding: 16px;
+    }
+    header, section {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+    h1 { font-size: 1.5rem; margin: 0 0 6px; }
+    h2 { font-size: 1.15rem; margin: 0 0 10px; }
+    p { margin: 0 0 10px; }
+    .small { font-size: 0.9rem; color: var(--muted); }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+    @media (min-width: 600px) {
+      .grid-2 { grid-template-columns: 1fr 1fr; }
+    }
+    label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 4px;
+      font-size: 0.95rem;
+    }
+    select, textarea, button {
+      width: 100%;
+      font: inherit;
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1px solid #a1a1aa;
+      background: #fff;
+      color: var(--ink);
+    }
+    button {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+      font-weight: 600;
+      cursor: pointer;
+    }
+    button:hover { opacity: 0.92; }
+    .kpi-box {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      background: #fafafa;
+    }
+    .kpi-val {
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--accent);
+    }
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      background: var(--accent-soft);
+      color: var(--accent);
+    }
+    .notice {
+      background: var(--warn-bg);
+      color: var(--warn-ink);
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 0.92rem;
+      margin-top: 8px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.92rem;
+      margin-top: 8px;
+    }
+    th, td {
+      text-align: left;
+      padding: 8px 6px;
+      border-bottom: 1px solid var(--line);
+    }
+    th { background: #f4f4f5; }
+    .trace-item {
+      border: 1px solid var(--line);
+      border-left: 4px solid var(--accent);
+      border-radius: 8px;
+      padding: 10px 12px;
+      margin-top: 10px;
+      background: #fafafa;
+    }
+    nav a {
+      color: var(--accent);
+      font-weight: 600;
+      text-decoration: none;
+      margin-right: 14px;
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <nav><a href="index.html">Landing page (index.html)</a></nav>
+    <h1>Sciar Tips · Staff View</h1>
+    <p class="small" id="data-status">Loading pilot data...</p>
+    <p class="small"><strong>Privacy note:</strong> Individual pay is shown only for the selected staff member. Colleague group figures are shown only for roles with 3 or more people (servers: 5 staff; chefs: 3 staff). No names are attached to logged concerns, and no individual identity is sent to management here.</p>
+  </header>
+
+  <section>
+    <h2>1. Choose staff member and week</h2>
+    <div class="grid-2">
+      <div>
+        <label for="staff-select">Staff member</label>
+        <select id="staff-select"></select>
+      </div>
+      <div>
+        <label for="week-select">Pilot week</label>
+        <select id="week-select">
+          <option value="all">All 12 weeks (14 Aug – 5 Nov 2028)</option>
+        </select>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>2. Your payout &amp; hours (observed data)</h2>
+    <div class="grid-2" id="personal-kpis"></div>
+    <p class="small" id="personal-source" style="margin-top:10px;"></p>
+    <div id="personal-weeks"></div>
+  </section>
+
+  <section>
+    <h2>3. Figures hidden by weekly text messages</h2>
+    <div class="grid-2" id="hidden-kpis"></div>
+    <p class="small" id="hidden-source" style="margin-top:10px;"></p>
+    <div class="notice">
+      <strong>Group privacy check (3+ people only):</strong> Roles with fewer than 3 people (floor manager: 1; bar: 2; kitchen porters: 2 across pilot, 1 in weeks 9–12) are excluded from role-level colleague comparisons so individuals cannot be identified.
+    </div>
+  </section>
+
+  <section>
+    <h2>4. Raise a concern (simulated trace)</h2>
+    <p class="small"><strong>How this works (simulated):</strong> This prototype stores concern traces locally in your browser (<code>localStorage</code> with an in-memory fallback if storage is blocked). It is a simulation for this alpha—not a live support queue or a message sent automatically to managers or owners.</p>
+    <form id="concern-form">
+      <label for="concern-text">What would you like to flag about your hours, points, or payout?</label>
+      <textarea id="concern-text" rows="3" placeholder="Example: Check my closing hours after 23:00 or ask how points are calculated." required></textarea>
+      <div style="margin-top:10px;">
+        <button type="submit">Save concern trace (simulated)</button>
+      </div>
+    </form>
+    <div id="concern-list"></div>
+  </section>
+</div>
+
+<script src="data/payouts.js"></script>
+<script src="data/takings.js"></script>
+<script>
+(function () {
+  const payouts = Array.isArray(window.PAYOUTS) ? window.PAYOUTS : [];
+  const takings = Array.isArray(window.TAKINGS) ? window.TAKINGS : [];
+
+  document.getElementById("data-status").textContent =
+    "Observed pilot data loaded: " + payouts.length + " rows in payouts.csv/payouts.js, " +
+    takings.length + " rows in takings.csv/takings.js.";
+
+  const staffMap = new Map();
+  const weeksSet = new Set();
+  payouts.forEach(r => {
+    if (!staffMap.has(r.staff_id)) {
+      staffMap.set(r.staff_id, { staff_id: r.staff_id, first_name: r.first_name, role: r.role });
+    }
+    weeksSet.add(Number(r.week));
+  });
+
+  const staffSelect = document.getElementById("staff-select");
+  Array.from(staffMap.values())
+    .sort((a, b) => a.staff_id.localeCompare(b.staff_id))
+    .forEach(s => {
+      const opt = document.createElement("option");
+      opt.value = s.staff_id;
+      opt.textContent = s.first_name + " (" + s.role + ", " + s.staff_id + ")";
+      staffSelect.appendChild(opt);
+    });
+
+  // Default to Rafael (S12) so low-power / late-shift visibility is immediately inspectable
+  if (staffMap.has("S12")) staffSelect.value = "S12";
+
+  const weekSelect = document.getElementById("week-select");
+  Array.from(weeksSet).sort((a, b) => a - b).forEach(w => {
+    const opt = document.createElement("option");
+    opt.value = String(w);
+    opt.textContent = "Week " + w;
+    weekSelect.appendChild(opt);
+  });
+
+  const num = v => Number(v) || 0;
+  const eur = v => "€" + Number(v).toFixed(2);
+
+  function renderAll() {
+    const sid = staffSelect.value;
+    const wk = weekSelect.value;
+
+    const personRows = payouts.filter(r => r.staff_id === sid && (wk === "all" || r.week === wk));
+    const sumHours = personRows.reduce((acc, r) => acc + num(r.hours), 0);
+    const sumAfter23 = personRows.reduce((acc, r) => acc + num(r.hours_after_2300), 0);
+    const sumPoints = personRows.reduce((acc, r) => acc + num(r.points), 0);
+    const sumPayout = personRows.reduce((acc, r) => acc + num(r.tip_payout_eur), 0);
+    const effRateTotalHr = sumHours > 0 ? sumPayout / sumHours : 0;
+
+    const person = staffMap.get(sid);
+    document.getElementById("personal-kpis").innerHTML = `
+      <div class="kpi-box">
+        <div class="small">Tip payout (${wk === "all" ? "all weeks" : "week " + wk})</div>
+        <div class="kpi-val">${eur(sumPayout)}</div>
+        <div class="small">Effective rate across all hours: ${eur(effRateTotalHr)}/hr</div>
+      </div>
+      <div class="kpi-box">
+        <div class="small">Hours &amp; points earned</div>
+        <div class="kpi-val">${sumHours.toFixed(1)}h · ${sumPoints.toFixed(2)} pts</div>
+        <div class="small">Hours after 23:00 (0 pts): ${sumAfter23.toFixed(1)}h (${person ? person.points_per_hour || payouts.find(x=>x.staff_id===sid).points_per_hour : ""} pts/hr)</div>
+      </div>
+    `;
+
+    const filterDesc = wk === "all"
+      ? `staff_id = ${sid} (${person.first_name}), weeks 1 to 12`
+      : `staff_id = ${sid} (${person.first_name}), week = ${wk}`;
+    document.getElementById("personal-source").textContent =
+      `Source & filter: payouts.csv (PAYOUTS), ${filterDesc} — ${personRows.length} row(s).`;
+
+    let rowsHtml = `<table><thead><tr><th>Wk</th><th>Hours</th><th>&gt;23:00</th><th>Pts</th><th>Pool</th><th>Payout</th></tr></thead><tbody>`;
+    personRows.forEach(r => {
+      rowsHtml += `<tr>
+        <td>W${r.week}</td>
+        <td>${num(r.hours).toFixed(1)}</td>
+        <td>${num(r.hours_after_2300).toFixed(1)}</td>
+        <td>${num(r.points).toFixed(2)}</td>
+        <td>${eur(r.week_pool_eur)}</td>
+        <td><strong>${eur(r.tip_payout_eur)}</strong></td>
+      </tr>`;
+    });
+    rowsHtml += `</tbody></table>`;
+    document.getElementById("personal-weeks").innerHTML = rowsHtml;
+
+    // Hidden figure 1: Unpointed hours after 23:00 across payouts.csv
+    const allHours = payouts.reduce((acc, r) => acc + num(r.hours), 0);
+    const allAfter23 = payouts.reduce((acc, r) => acc + num(r.hours_after_2300), 0);
+    const shareAfter23 = allHours > 0 ? (allAfter23 / allHours) * 100 : 0;
+
+    // Hidden figure 2: Total house service charge vs card tip pool in takings.csv
+    const totalCardTips = takings.reduce((acc, r) => acc + num(r.card_tips_eur), 0);
+    const totalServiceCharge = takings.reduce((acc, r) => acc + num(r.service_charge_eur), 0);
+
+    // Group of >= 3 comparison: servers (5 staff) vs chefs (3 staff) across all 12 weeks
+    const serverRows = payouts.filter(r => r.role === "server");
+    const serverPayout = serverRows.reduce((acc, r) => acc + num(r.tip_payout_eur), 0);
+    const serverHours = serverRows.reduce((acc, r) => acc + num(r.hours), 0);
+
+    const chefRows = payouts.filter(r => r.role === "chef");
+    const chefPayout = chefRows.reduce((acc, r) => acc + num(r.tip_payout_eur), 0);
+    const chefHours = chefRows.reduce((acc, r) => acc + num(r.hours), 0);
+
+    document.getElementById("hidden-kpis").innerHTML = `
+      <div class="kpi-box">
+        <div class="small">Hours after 23:00 earning 0 points (all staff)</div>
+        <div class="kpi-val">${allAfter23.toFixed(1)} hrs (${shareAfter23.toFixed(1)}%)</div>
+        <div class="small">Out of ${allHours.toFixed(1)} total logged hours in payouts.csv (152 rows)</div>
+      </div>
+      <div class="kpi-box">
+        <div class="small">Service charge outside tip pool (house)</div>
+        <div class="kpi-val">${eur(totalServiceCharge)}</div>
+        <div class="small">Card tips pooled: ${eur(totalCardTips)} across takings.csv (72 rows)</div>
+      </div>
+      <div class="kpi-box">
+        <div class="small">Servers group (5 people, 60 rows)</div>
+        <div class="kpi-val">${eur(serverPayout)}</div>
+        <div class="small">${serverHours.toFixed(1)} hrs · ${eur(serverHours > 0 ? serverPayout / serverHours : 0)}/total hr</div>
+      </div>
+      <div class="kpi-box">
+        <div class="small">Chefs group (3 people, 36 rows)</div>
+        <div class="kpi-val">${eur(chefPayout)}</div>
+        <div class="small">${chefHours.toFixed(1)} hrs · ${eur(chefHours > 0 ? chefPayout / chefHours : 0)}/total hr</div>
+      </div>
+    `;
+    document.getElementById("hidden-source").textContent =
+      "Source & filter: payouts.csv (all 152 rows; role='server' 60 rows [5 staff]; role='chef' 36 rows [3 staff]) and takings.csv (all 72 rows).";
+  }
+
+  // Simulated concern trace (per-staff scope in browser storage + fallback)
+  let memoryTraces = [];
+  const storageKey = "sciar_simulated_concerns_v1";
+
+  function loadTraces() {
+    try {
+      const raw = window.localStorage.getItem(storageKey);
+      return raw ? JSON.parse(raw) : [];
+    } catch (_) {
+      return memoryTraces;
+    }
+  }
+
+  function saveTraces(items) {
+    memoryTraces = items;
+    try {
+      window.localStorage.setItem(storageKey, JSON.stringify(items));
+    } catch (_) {}
+  }
+
+  function renderTraces() {
+    const sid = staffSelect.value;
+    const all = loadTraces().filter(t => t.staff_id === sid);
+    const listEl = document.getElementById("concern-list");
+    if (!all.length) {
+      listEl.innerHTML = `<p class="small" style="margin-top:10px;">No simulated concerns logged yet for ${sid}.</p>`;
+      return;
+    }
+    listEl.innerHTML = all.map(t => `
+      <div class="trace-item">
+        <div class="small"><strong>Simulated trace ID:</strong> ${t.id} · <strong>Saved:</strong> ${t.createdAt} · <span class="badge">${t.status}</span></div>
+        <p style="margin:6px 0 0;">${escapeHtml(t.text)}</p>
+      </div>
+    `).join("");
+  }
+
+  function escapeHtml(str) {
+    return String(str)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  document.getElementById("concern-form").addEventListener("submit", function (e) {
+    e.preventDefault();
+    const input = document.getElementById("concern-text");
+    const text = input.value.trim();
+    if (!text) return;
+    const items = loadTraces();
+    items.unshift({
+      id: "SIM-" + Math.random().toString(36).slice(2, 7).toUpperCase(),
+      staff_id: staffSelect.value,
+      createdAt: new Date().toISOString().replace("T", " ").slice(0, 16) + " UTC",
+      status: "Simulated local trace",
+      text
+    });
+    saveTraces(items);
+    input.value = "";
+    renderTraces();
+  });
+
+  staffSelect.addEventListener("change", () => { renderAll(); renderTraces(); });
+  weekSelect.addEventListener("change", renderAll);
+
+  renderAll();
+  renderTraces();
+})();
+</script>
+</body>
+</html>
